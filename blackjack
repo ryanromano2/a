@@ -1,0 +1,247 @@
+import java.util.Scanner;
+import java.util.Random;
+import java.util.ArrayList;
+public class BlackJack{
+	//creates a deck.class object, 2 ArrayLists of card.class objects
+	//and a scanner for input from the user
+	private deck cards = new deck();
+	private ArrayList<card> playerHand = new ArrayList<>();
+	private ArrayList<card> dealerHand = new ArrayList<>();
+	private Scanner userInput = new Scanner(System.in);
+	private Scanner userInput1 = new Scanner(System.in);
+	private static int money = 100;
+	private int bet = 0;
+	public static void main(String[] aaa){
+		new BlackJack();
+	}
+	//the constructor for a BlackJack.class object, which asks the user
+	//for input to determine which course of action/method to call
+	public BlackJack(){
+		cards.fillDeck();
+		Scanner replay = new Scanner(System.in);
+		System.out.println("Would you like to run the BlackJack class?");
+		while(replay.nextLine().equals("y")){
+			if(cards.deckSize()<20){
+				createDeck();
+			}
+			playerHand.clear();
+			dealerHand.clear();
+			menu();
+			System.out.println("Would you like to run the BlackJack class?");
+		}
+	}
+	public void createDeck(){
+		cards = new deck();
+		cards.fillDeck();
+	}
+	public void menu(){
+		System.out.println("Input the keyword for your choice: ");
+		System.out.println("1. Deck: For a new deck.");
+		System.out.println("2. Deal: For 4 cards and remaining cards in deck.");
+		System.out.println("3. Shuffle: For the cards to be shuffled and printed.");
+		System.out.println("4. BlackJack: For a game of BlackJack");
+		System.out.println("You have "+ money + "$ to bet");
+		String choice = userInput.nextLine();
+		if(choice.equals("Deck")){		
+			newDeck();
+		}else if(choice.equals("Deal")){
+			newDeal();
+		}else if(choice.equals("Shuffle")){
+			newShuffle();
+		}else if(choice.equals("BlackJack")){
+			if(money>0){
+				betting();
+				game();
+			}
+		}
+	}
+	//this method plays the actual game of BlackJack by filling the deck
+	//object with cards, shuffling the deck, dealing the player and 
+	//dealer hands, printing both hands as the game requires, and takes
+	//user input to determine the players choice of hitting or staying
+	//with their cards. This method is also constantly checking for 
+	//whether the dealer or player has won the game and can exit the 
+	//execution of the method
+	public void betting(){
+		System.out.println("How much will you bet");
+		this.bet = Math.abs(userInput1.nextInt());
+		if(bet<=money && bet>0){
+			this.money -= bet;
+		}else{
+			menu();
+		}
+	}
+	public void game(){
+		Scanner userInput = new Scanner(System.in);
+		cards.shuffleDeck();
+		dealCards();
+		printPlayerHand();
+		printDealerHand();
+		if(dealerValue()==21){
+			printDealerHandEnd();
+			System.out.println("Dealer Wins");
+			System.out.println("You have "+ money + "$ to bet");
+			return;
+		}else if(playerValue()==21){
+			System.out.println("Player Wins");
+			System.out.println("You have "+ money + "$ to bet");
+			money += bet;
+			money += bet;
+			System.out.println("You have "+ money + "$ to bet");
+			return;
+		}
+		String hit = "";
+		hit = userInput.nextLine();
+		while(hit.equals("hit") && (playerValue()<21)){
+			playerHand.add(cards.hit());
+			printPlayerHand();
+			printDealerHand();
+			hit = userInput.nextLine();
+		}
+		if(playerValue()==21){
+			System.out.println("Player Wins");
+			System.out.println("You have "+ money + "$ to bet");
+			money += bet;
+			money += bet;
+			System.out.println("You have "+ money + "$ to bet");			System.out.println("You have "+ money + "$ to bet");
+			return;
+		}
+		if(playerValue()>21){
+			System.out.println("Dealer Wins");
+			System.out.println("You have "+ money + "$ to bet");
+			return;
+		}else{
+			while(dealerValue()<17 || dealerValue()<playerValue()){
+				printPlayerHand();
+				printDealerHand();
+				dealerHand.add(cards.hit());
+			} 
+			printPlayerHand();
+			printDealerHandEnd();
+			if(dealerValue()>21){
+				System.out.println("Player Wins");
+				System.out.println("You have "+ money + "$ to bet");
+				money += bet;
+				money += bet;
+				System.out.println("You have "+ money + "$ to bet");
+				return;
+			}
+		}
+		if(playerValue()>dealerValue()){
+			System.out.println("Player Wins");
+			System.out.println("You have "+ money + "$ to bet");
+			money += bet;
+			money += bet;
+			System.out.println("You have "+ money + "$ to bet");
+			return;
+		}
+		System.out.println("Dealer Wins");
+		System.out.println("You have "+ money + "$ to bet");
+		return;
+	}
+	//sortHand() sorts the player hand to have the aces move to the end
+	//of the ArrayList playerHand so that the aces can be checked for 
+	//the need to change the value from 11 to 1 during the gameplay
+	public void sortHand(){
+		for(int x=0;x<playerHand.size();x++){
+			if(playerHand.get(x).getNumber()==11){
+				playerHand.add(playerHand.get(x));
+				playerHand.remove(x);
+			}
+		}
+
+	}
+	//sortDealerHand() sorts the dealer hand to have the aces move to the end
+	//of the ArrayList dealerHand so that the aces can be checked for 
+	//the need to change the value from 11 to 1 during the gameplay
+	public void sortDealerHand(){
+		for(int x=0;x<dealerHand.size();x++){
+			if(dealerHand.get(x).getNumber()==11){
+				dealerHand.add(dealerHand.get(x));
+				dealerHand.remove(x);
+			}
+		}
+
+	}
+	//playerValue() returns the total values of cards in the players hand 
+	//and has a check for aces to change from a value of 11 to 1 if needed
+	public int playerValue(){
+		int x = 0;
+		sortHand();
+		for(int c=0;c<playerHand.size();c++){
+			x += playerHand.get(c).getNumber();
+			if(playerHand.get(c).getNumber()==11 && x>21)
+			{
+				x -= 10;
+			}
+		}
+		return x;
+	}
+	//dealerValue() returns the total values of cards in the dealers hand 
+	//and has a check for aces to change from a value of 11 to 1 if needed
+	public int dealerValue(){
+		int x = 0;
+		sortDealerHand();
+		for(int c=0;c<dealerHand.size();c++){
+			x += dealerHand.get(c).getNumber();
+			if(dealerHand.get(c).getNumber()==11 && x>21)
+			{
+				x -= 10;
+			}
+		}
+		return x;
+	}
+	//dealCards() deals the card.class objects for the playerHand and 
+	//dealerHand ArrayLists by using the deal() method in deck.class
+	public void dealCards(){
+		for(int x=0;x<2;x++){
+			playerHand.add(cards.deal());
+			dealerHand.add(cards.deal());
+		}
+	}
+	//printPlayerHand() prints the values of the players hand using
+	//the card.class toString() method
+	public void printPlayerHand(){
+		System.out.println("Players Hand:");
+		for(int x=0;x<playerHand.size();x++){
+			System.out.println(playerHand.get(x).toString());
+		}
+	}
+	//printDealerHand() prints the values of the dealers hand using
+	//the card.class toString() method
+	public void printDealerHand(){
+		System.out.println("Dealers Hand:");
+		for(int x=1;x<dealerHand.size();x++){
+			System.out.println(dealerHand.get(x).toString());
+		}
+	}
+	//printDealerHandEnd() prints the values of the dealers entire hand to 
+	//show the final values when the game has ended for any reason using
+	//the card.class toString() method
+	public void printDealerHandEnd(){
+		System.out.println("Dealers Hand:");
+		for(int x=0;x<dealerHand.size();x++){
+			System.out.println(dealerHand.get(x).toString());
+		}
+	}
+	//newDeck() fills the deck object cards and prints the values for the 
+	//requirement
+	public void newDeck(){
+		cards.fillDeck();
+		cards.printDeck();
+	}
+	//newDeal() fills the deck object cards and deals the top 4 cards
+	//and prints their values using the card.class toString() method
+	public void newDeal(){
+		for(int x=0;x<4;x++){
+			System.out.println(cards.deal().toString());
+			System.out.println(cards.deckSize());
+		}
+	}
+	//newShuffle() fills the deck.class object cards with card.class objects
+	//and shuffles the deck and prints the deck in the new shuffled order
+	public void newShuffle(){
+		cards.shuffleDeck();
+		cards.printDeck();
+	}
+}
